@@ -38,16 +38,36 @@
   background: #4CAF50;
   cursor: pointer;
 }
+    
+.top {
+  display: flex;
+  flex-direction: row;
+}
+
+p {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
 </style>
 </head>
 
 <body>
-	<div id="graphDiv1"></div>
-
+  <div class="top">
+    <div id="graphDiv1"></div>
+    <div id="myText">
+    <p>Assets consist mostly of Reserve Bank Credit (RBC)&#8212; Treasury and Agency debt owned by the Fed, including repos</p>
+    <p>Liabilities consist of Currency in Circulation plus other capital, and together with reserves equals Assets</p>
+    <p>Monetary Base is roughly all of the currency (printed Federal Reserve Notes) plus Reserves on deposit at the Fed (ledger entries of bank reserves)</p>
+    <p>Required reserves are a fraction of Checkable Deposits, thus fractional reserve banking</p>
+    <p>Since 2008 there has been a pile of excess reserves, mostly kept on deposit at the Fed for interest</p>
+    <p>Before 2008, the Monetary Base consisted almost entirely of currency, with reserves only playing a small part</p>
+	<p>M1 is mainly the sum of checkable deposits and currency outside the banks</p>
+	</div>
+  </div>
+  
     <div class="slidecontainer">
       <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
     </div>
-    
 	
 	<!--[if IE]><script src="excanvas.js"></script><![endif]-->
 	<script src="html5-canvas-bar-graph.js"></script>
