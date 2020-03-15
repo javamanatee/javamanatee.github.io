@@ -202,8 +202,8 @@ var y_check = [641, 648, 620, 613, 614, 632, 604, 603, 614, 641, 637, 663, 749, 
 
   // Public properties and methods
 	
-  this.width = 1000;
-  this.height = 800;	
+  this.width = 800;
+  this.height = 700;	
   this.maxValue;
   this.margin = 5;
   this.curArr = [];

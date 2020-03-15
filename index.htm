@@ -44,8 +44,20 @@
   flex-direction: row;
 }
 
+.myText {
+  min-width: 400px;
+  width: 400px;
+  background-color: #cfc;
+  padding: 10px;
+  border: 1px solid green;
+}
+
 p {
   font-family: Arial, Helvetica, sans-serif;
+}
+
+p.pad {
+  margin-top: 60px;
 }
 
 </style>
@@ -54,7 +66,8 @@ p {
 <body>
   <div class="top">
     <div id="graphDiv1"></div>
-    <div id="myText">
+    <div class="myText">
+	<p class="pad"></p>
     <p>Assets consist mostly of Reserve Bank Credit (RBC)&#8212; Treasury and Agency debt owned by the Fed, including repos</p>
     <p>Liabilities consist of Currency in Circulation plus other capital, and together with reserves equals Assets</p>
     <p>Monetary Base is roughly all of the currency (printed Federal Reserve Notes) plus Reserves on deposit at the Fed (ledger entries of bank reserves)</p>
