@@ -1,124 +1,60 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Fed Statistics Timeline</title>
+	<title>Some Javascript Projects</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-.slidecontainer {
-  width: 100%;
+a:link {
+  font-size: large;
+  color: blue;
+  text-decoration: none;
+  }
+a:visited {
+  font-size: large;
+  color: blue;
+  text-decoration: none;
 }
-
-.slider {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 25px;
-  background: #d3d3d3;
-  outline: none;
-  opacity: 0.7;
-  -webkit-transition: .2s;
-  transition: opacity .2s;
+a:hover {
+  font-size: large;
+  color: blue;
+  text-decoration: underline;
 }
-
-.slider:hover {
-  opacity: 1;
+a.back {
+  font-size: small;
 }
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 25px;
-  height: 25px;
-  background: #4CAF50;
-  cursor: pointer;
-}
-
-.slider::-moz-range-thumb {
-  width: 25px;
-  height: 25px;
-  background: #4CAF50;
-  cursor: pointer;
-}
-    
-.top {
-  display: flex;
-  flex-direction: row;
-}
-
-.myText {
-  min-width: 400px;
-  width: 400px;
-  background-color: #cfc;
-  padding: 10px;
-  border: 1px solid green;
-}
-
 p {
   font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  max-width: 700px;
 }
-
 p.pad {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
   margin-top: 25px;
 }
-
+p.footer {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  margin-top: 50px;
+}
+h2 {
+  font-family: Arial, Helvetica, sans-serif;
+}
 </style>
-</head>
-
 <body>
-  <div class="top">
-    <div id="graphDiv1"></div>
-    <div class="myText">
-	<p class="pad"></p>
-    <p>Assets consist mostly of Reserve Bank Credit (RBC)&#8212; Treasury and Agency debt owned by the Fed, including repos</p>
-    <p>Liabilities consist of Currency in Circulation plus other capital, and together with reserves equals Assets</p>
-    <p>Monetary Base is roughly all of the currency (printed Federal Reserve Notes) plus Reserves on deposit at the Fed (ledger entries of bank reserves)</p>
-    <p>Required reserves are a fraction of Checkable Deposits, thus fractional reserve banking</p>
-    <p>Since 2008 there has been a pile of excess reserves, mostly kept on deposit at the Fed for interest</p>
-    <p>Before 2008, the Monetary Base consisted almost entirely of currency, with reserves only playing a small part</p>
-	<p>M1 is mainly the sum of checkable deposits and currency outside the banks</p>
-	</div>
-  </div>
-  
-    <div class="slidecontainer">
-      <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
-    </div>
-	
-	<!--[if IE]><script src="excanvas.js"></script><![endif]-->
-	<script src="html5-canvas-bar-graph.js"></script>
-	<script>(function () {
-	
-		function createCanvas(divName) {
-			
-			var div = document.getElementById(divName);
-			var canvas = document.createElement('canvas');
-			div.appendChild(canvas);
-			if (typeof G_vmlCanvasManager != 'undefined') {
-				canvas = G_vmlCanvasManager.initElement(canvas);
-			}	
-			var ctx = canvas.getContext("2d");
-			return ctx;
-		}
-		
-		var ctx = createCanvas("graphDiv1");
-		
-		var graph = new BarGraph(ctx);
-		graph.maxValue = 70;
-		graph.margin = 2;
-
-    var slider = document.getElementById("myRange");
-	graph.sliderVal = slider.value;
-		graph.update(); 
-    
-    slider.oninput = function() {
-	  graph.sliderVal = this.value;
-	  graph.update();
-    }
-		
-	}());
-	
-
-	
-	</script>
-	
-	
+<div>
+<h2 class="title">Some Javascript Projects</h2>
+<p>This is a launch page for some projects on Github, which provides a pretty easy (and free) way to host Javascript content.</p>
+</div>
+<div></div>
+<div>
+<p class="pad"><a href="fed_reserve.htm">Federal Reserve Mechanics</a></p>
+<p>Showing how the Federal Reserve buys assets, and how that translates into monetary base, currency, and bank deposits.  The Quantitative Easing (QE) that began in 2008 in response to that financial crisis marks a notable departure from previous monetary policy.  Use the slider to move back and forth over time to see how this played out.</p>
+<p class="pad"><a href="essex_overlay.htm">Overlay Map of Essex</a></p>
+<p>This is an overlay of one page of the Chapman and Andre map of Essex, England, from 1777.  It has been closely matched up to the location on Google Maps.  Use the slider to change transparency.  There is a close match in location of roads, buildings, and estates.  Many place names are preserved.  Some of my ancestors came from Wethersfield, in the upper left corner of the map.</p>
+</div>
+<div>
+<p class="footer">[<a class="back" href="http://jasonlivermore.wordpress.com">Link</a>] to my main site</p>
+</div>
 </body>
 </html>

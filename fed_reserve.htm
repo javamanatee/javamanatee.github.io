@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Fed Statistics Timeline</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+.slidecontainer {
+  width: 100%;
+}
+
+.slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 25px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  background: #4CAF50;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  background: #4CAF50;
+  cursor: pointer;
+}
+    
+.top {
+  display: flex;
+  flex-direction: row;
+}
+
+.myText {
+  min-width: 400px;
+  width: 400px;
+  background-color: #cfc;
+  padding: 10px;
+  border: 1px solid green;
+}
+
+p {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+p.pad {
+  margin-top: 25px;
+}
+
+</style>
+</head>
+
+<body>
+  <div class="top">
+    <div id="graphDiv1"></div>
+    <div class="myText">
+	<p class="pad"></p>
+    <p>Assets consist mostly of Reserve Bank Credit (RBC)&#8212; Treasury and Agency debt owned by the Fed, including repos</p>
+    <p>Liabilities consist of Currency in Circulation plus other capital, and together with reserves equals Assets</p>
+    <p>Monetary Base is roughly all of the currency (printed Federal Reserve Notes) plus Reserves on deposit at the Fed (ledger entries of bank reserves)</p>
+    <p>Required reserves are a fraction of Checkable Deposits, thus fractional reserve banking</p>
+    <p>Since 2008 there has been a pile of excess reserves, mostly kept on deposit at the Fed for interest</p>
+    <p>Before 2008, the Monetary Base consisted almost entirely of currency, with reserves only playing a small part</p>
+	<p>M1 is mainly the sum of checkable deposits and currency outside the banks</p>
+	</div>
+  </div>
+  
+    <div class="slidecontainer">
+      <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+    </div>
+	
+	<!--[if IE]><script src="excanvas.js"></script><![endif]-->
+	<script src="html5-canvas-bar-graph.js"></script>
+	<script>(function () {
+	
+		function createCanvas(divName) {
+			
+			var div = document.getElementById(divName);
+			var canvas = document.createElement('canvas');
+			div.appendChild(canvas);
+			if (typeof G_vmlCanvasManager != 'undefined') {
+				canvas = G_vmlCanvasManager.initElement(canvas);
+			}	
+			var ctx = canvas.getContext("2d");
+			return ctx;
+		}
+		
+		var ctx = createCanvas("graphDiv1");
+		
+		var graph = new BarGraph(ctx);
+		graph.maxValue = 70;
+		graph.margin = 2;
+
+    var slider = document.getElementById("myRange");
+	graph.sliderVal = slider.value;
+		graph.update(); 
+    
+    slider.oninput = function() {
+	  graph.sliderVal = this.value;
+	  graph.update();
+    }
+		
+	}());
+	
+
+	
+	</script>
+	
+	
+</body>
+</html>

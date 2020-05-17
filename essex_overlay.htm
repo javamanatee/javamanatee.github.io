@@ -3,7 +3,7 @@
   <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
-    <title>Braintree Essex</title>
+    <title>Braintree Essex Map Overlay</title>
     <style>
       /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
@@ -16,10 +16,48 @@
         margin: 0;
         padding: 0;
       }
+  
+      .slidecontainer {
+	     position: absolute;
+         width: 50%;
+		 bottom: 0px;
+      }
+
+      .slider {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 25px;
+        background: #d3d3d3;
+        outline: none;
+        opacity: 0.7;
+        -webkit-transition: .2s;
+        transition: opacity .2s;
+      }
+
+      .slider:hover {
+        opacity: 1;
+      }
+      
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 25px;
+        height: 25px;
+        background: #4CAF50;
+        cursor: pointer;
+      }
+      
+      .slider::-moz-range-thumb {
+       width: 25px;
+       height: 25px;
+       background: #4CAF50;
+       cursor: pointer;
+      }
+
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD98pGKJJ_aN0qfPA1Oo8I2ueWGD6tLW3w"></script>
     <script>
-      // This example creates a custom overlay called USGSOverlay, containing
+      // This example creates a custom overlay called MapOverlay, containing
       // a U.S. Geological Survey (USGS) image of the relevant area on the map.
 
       // Set the custom overlay object's prototype to a new instance
@@ -30,7 +68,7 @@
       // parent class itself, because we do not wish to modify the parent class.
 
       var overlay;
-      USGSOverlay.prototype = new google.maps.OverlayView();
+      MapOverlay.prototype = new google.maps.OverlayView();
 
       // Initialize the map and the custom overlay.
 
@@ -40,9 +78,6 @@
           center: {lat: 51.9, lng: 0.60},
           mapTypeId: 'roadmap'
         });
-//          center: {lat: 62.323907, lng: -150.109291},
-            <!-- new google.maps.LatLng(62.281819, -150.287132), -->
-            <!-- new google.maps.LatLng(62.400471, -150.005608)); -->
 
         var bounds = new google.maps.LatLngBounds(
             new google.maps.LatLng(51.838, 0.473),
@@ -51,20 +86,21 @@
         // The photograph is courtesy of the U.S. Geological Survey.
         //var srcImage = 'https://developers.google.com/maps/documentation/' +
         //    'javascript/examples/full/images/talkeetna.png';
-	    var srcImage = 'wethersfield-test.jpg'
+        var srcImage = 'wethersfield-test.jpg'
 
-        // The custom USGSOverlay object contains the USGS image,
+        // The custom MapOverlay object contains the USGS image,
         // the bounds of the image, and a reference to the map.
-        overlay = new USGSOverlay(bounds, srcImage, map);
+        overlay = new MapOverlay(bounds, srcImage, map);
       }
 
       /** @constructor */
-      function USGSOverlay(bounds, image, map) {
+      function MapOverlay(bounds, image, map) {
 
         // Initialize all properties.
         this.bounds_ = bounds;
         this.image_ = image;
         this.map_ = map;
+        this.sliderVal = 50;
 
         // Define a property to hold the image's div. We'll
         // actually create this div upon receipt of the onAdd()
@@ -79,7 +115,7 @@
        * onAdd is called when the map's panes are ready and the overlay has been
        * added to the map.
        */
-      USGSOverlay.prototype.onAdd = function() {
+      MapOverlay.prototype.onAdd = function() {
 
         var div = document.createElement('div');
         div.style.borderStyle = 'none';
@@ -101,7 +137,7 @@
         panes.overlayLayer.appendChild(div);
       };
 
-      USGSOverlay.prototype.draw = function() {
+      MapOverlay.prototype.draw = function() {
 
         // We use the south-west and north-east
         // coordinates of the overlay to peg it to the correct position and size.
@@ -124,26 +160,26 @@
 
       // The onRemove() method will be called automatically from the API if
       // we ever set the overlay's map property to 'null'.
-      USGSOverlay.prototype.onRemove = function() {
+      MapOverlay.prototype.onRemove = function() {
         this.div_.parentNode.removeChild(this.div_);
         this.div_ = null;
       };
 
 		// Set the visibility to 'hidden' or 'visible'.
-		USGSOverlay.prototype.hide = function() {
+		MapOverlay.prototype.hide = function() {
 		  if (this.div_) {
 			// The visibility property must be a string enclosed in quotes.
 			this.div_.style.visibility = 'hidden';
 		  }
 		};
 
-		USGSOverlay.prototype.show = function() {
+		MapOverlay.prototype.show = function() {
 		  if (this.div_) {
 			this.div_.style.visibility = 'visible';
 		  }
 		};
 
-		USGSOverlay.prototype.toggle = function() {
+		MapOverlay.prototype.toggle = function() {
 		  if (this.div_) {
 			if (this.div_.style.visibility === 'hidden') {
 			  this.show();
@@ -152,29 +188,31 @@
 			}
 		  }
 		};
-
-		// Detach the map from the DOM via toggleDOM().
-		// Note that if we later reattach the map, it will be visible again,
-		// because the containing <div> is recreated in the overlay's onAdd() method.
-		USGSOverlay.prototype.toggleDOM = function() {
-		  if (this.getMap()) {
-			// Note: setMap(null) calls OverlayView.onRemove()
-			this.setMap(null);
-		  } else {
-			this.setMap(this.map_);
-		  }
-		};
-	  
+		
+		MapOverlay.prototype.adjust = function() {
+		   if (this.div_) {
+		     sliderDecimal = sliderVal / 100;
+		     this.div_.style.opacity = sliderDecimal.toString();
+		}
+      }
       google.maps.event.addDomListener(window, 'load', initMap);
     </script>
   </head>
   <body>
     <div id="map"></div>
-    <!-- Add an input button to initiate the toggle method on the overlay. -->
-    <div id="floating-panel">
-      <input type="button" value="Toggle visibility" onclick="overlay.toggle();"></input>
-      <!-- <input type="button" value="Toggle DOM attachment" onclick="overlay.toggleDOM();"></input> -->
+    <!-- Add slider to control opacity of the overlay -->
+    <div class="slidecontainer">
+      <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
     </div>
-
+	
+    <script>
+	// Has to come after slider definition in HTML
+	var slider = document.getElementById("myRange");
+	sliderVal = slider.value;
+    slider.oninput = function() {
+	   sliderVal = slider.value;
+       overlay.adjust();
+    } 
+    </script>	
   </body>
 </html>
