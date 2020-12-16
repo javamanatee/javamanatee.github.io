@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.top {
+  display: flex;
+  flex-direction: row;
+}
+.statusHeading {
+   font-weight: bold;
+   font-family: 'Arial';
+}
+.statusLabel {
+   font-family: 'Arial';
+}
+.statusValue {
+   font-family: 'Arial';
+}
+.thrustl {
+   font-family: 'Arial';
+}
+.thrustb {
+  width: 120px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background-color: #4CAF50;
+  padding: 10px 2px;
+}
+.tablediv {
+  margin-top: 35px;
+  margin-right: 15px;
+}
+table, td, th {
+  border: 1px solid black;
+  width: 200px;
+  border-collapse: collapse;
+  padding: 3px;
+  background: #f0f0f0;
+}
+.slidecontainer {
+   margin-top: 0px;
+   margin-left: 50px;
+}
+
+#statuspane {
+  display: flex;
+  flex-direction: row;
+}
+#controltitle {
+   margin-bottom: 20px;
+   font-family: 'Arial';
+   font-size: 30px;
+   font-weight: bold;
+   justify-content: center;
+}
+#control {
+   margin: 0px;
+   display: flex;
+   flex-direction: row;
+}
+#leftpane {
+  width: 600px;
+  height: 600px;
+  position: relative;
+  background: #e0e0e0;
+}
+#rightpane {
+   width: 500px;
+   margin: 25px;
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+   <div id = "leftpane">
+      <canvas id="myCanvas" width="600" height="600">Your browser does not support the HTML5 canvas tag.</canvas>
+   </div>
+   <div id = "rightpane">
+      <div id="controltitle">Ship Control</div>
+      <div id = "control">
+         <form class="thrustbox">
+            <input type="button" class="thrustb" value="Prograde" onclick="thrust(1)">
+            <input type="button" class="thrustb" value="Retrograde" onclick="thrust(0)">
+            <p><label for="thrustin" class="thrustl">Thrust [1..1000]</label></p>
+            <input type="text" id="thrustId" name="thrustin" value="1">
+         </form>
+         <div class="slidecontainer">
+            <input type="range" min="1" max="100" value="1" class="slider" id="myRange">
+            <p>Time warp: <span id="warp">1</span></p>
+         </div>
+      </div>
+      <div id = "statuspane">
+         <div class="tablediv">
+         <table>
+         <tr><th class="statusHeading" colspan="2">Ship Stats</th></tr>
+         <tr><td class="statusLabel">Ecc</td><td class="statusValue" id="shipEcc">0</td></tr>
+         <tr><td class="statusLabel">SMajAx</td><td class="statusValue" id="shipAx">0</td></tr>
+         <tr><td class="statusLabel">Period</td><td class="statusValue" id="shipPeriod">0</td></tr>
+         <tr><td class="statusLabel">ArgPe</td><td class="statusValue" id="shipArgP">0</td></tr>
+         <tr><td class="statusLabel">TimePe</td><td class="statusValue" id="shipTime">0</td></tr>
+         <tr><td class="statusLabel">RPe</td><td class="statusValue" id="shipRPe">0</td></tr>
+         <tr><td class="statusLabel">RAp</td><td class="statusValue" id="shipRAp">0</td></tr>
+         <tr><td class="statusLabel">Radius</td><td class="statusValue" id="shipRadius">0</td></tr>
+         <tr><td class="statusLabel">TrueAnom</td><td class="statusValue" id="shipTrAnom">0</td></tr>
+         </table>
+         </div>
+         <div class="tablediv">
+         <table>
+         <tr><th class="statusHeading" colspan="2">Station Stats</th></tr>
+         <tr><td class="statusLabel">Ecc</td><td class="statusValue" id="statEcc">0</td></tr>
+         <tr><td class="statusLabel">SMajAx</td><td class="statusValue" id="statAx">0</td></tr>
+         <tr><td class="statusLabel">Period</td><td class="statusValue" id="statPeriod">0</td></tr>
+         <tr><td class="statusLabel">ArgPe</td><td class="statusValue" id="statArgP">0</td></tr>
+         <tr><td class="statusLabel">TimePe</td><td class="statusValue" id="statTime">0</td></tr>
+         <tr><td class="statusLabel">RPe</td><td class="statusValue" id="statRPe">0</td></tr>
+         <tr><td class="statusLabel">RAp</td><td class="statusValue" id="statRAp">0</td></tr>
+         <tr><td class="statusLabel">Radius</td><td class="statusValue" id="statRadius">0</td></tr>
+         <tr><td class="statusLabel">TrueAnom</td><td class="statusValue" id="statTrAnom">0</td></tr>
+         </table>
+         </div>
+         <div class="tablediv">
+         <table>
+         <tr><th class="statusHeading">Distance</th></tr>
+         <tr><td class="statusValue" align="center" id="distance">0</td></tr>
+         </table>
+         </div>
+      </div>
+   </div>
+</div>
+
+<script>
+
+class Orbit {
+   constructor(shipNum) {
+      // Control parameters
+      this.tInc = 1;
+      this.thrustCommand = 0;
+      this.thrustDir = 1; // 1 = prograde, 0 = retrograde
+      this.shipNum = shipNum;
+      
+      // Orbit parameters
+      this.GM = 398600;     // standard graviational parameter for earth (km3 s-2)
+      this.RME = 6372.7976;	// earth mean radius (km)
+      this.ecc = 0; // eccentricity of orbit
+      this.ax = this.RME + 400.0;  // semi-major axis of orbit
+      this.argp = 0;  // argument of periapsis
+      this.time = 0; // epoch in seconds
+      this.topPeriod = 1000;
+      this.topTrueAnom = 0;
+      this.topRadius = 0;
+      this.radiusAp = 0;
+      this.radiusPe = 0;
+      this.pos = [0, 0];
+   }
+   
+   init() {
+		if (this.shipNum == 0) {
+			this.ecc = 0.005;
+			this.argp = 0.0;
+			this.ax = this.RME + 360.0;
+		}
+		else {
+         this.ecc = 0.024;
+			this.argp = 0.5;
+			this.ax = this.RME + 365.0;
+		}
+   }
+   
+   move() {
+      var p;
+      var v;
+      
+      // calculate new position
+		this.time += this.tInc;
+		if ((this.thrustCommand > 0) && (this.shipNum == 0))
+		{
+			if (this.thrustDir == 0)
+			{
+				this.thrustCommand = -this.thrustCommand;
+			}
+			// get velocity, change it, calculate new orbit, adjust time
+			p = this.getOrbitalPosition(this.time);
+			v = this.getVelocity(this.time);
+
+			var checkTime = this.setKeplerOrbit(p, v); // cross-check
+         
+			var velocity = Math.sqrt(v[0] * v[0] + v[1] * v[1]);
+			v[0] += ((v[0] / velocity) * this.thrustCommand / 1000.0);
+			v[1] += ((v[1] / velocity) * this.thrustCommand / 1000.0);
+			this.time = this.setKeplerOrbit(p, v);
+			this.thrustCommand = 0;
+		}
+		p = this.getOrbitalPosition(this.time);
+      this.radiusPe = this.ax * (1 - this.ecc);
+		this.radiusAp = this.ax * (1 + this.ecc);
+      this.pos = p;
+
+      this.time = this.time % this.topPeriod;
+   }
+   
+   setKeplerOrbit(p, v) {
+		var radius = Math.sqrt(p[0] * p[0] + p[1] * p[1]);
+		var velocity = Math.sqrt(v[0] * v[0] + v[1] * v[1]);
+		var eccVec = this.getEccVector(p, v);
+		this.ecc = Math.sqrt(eccVec[0] * eccVec[0] + eccVec[1] * eccVec[1]);
+		this.ax = this.GM * radius / (2 * this.GM - velocity * velocity * radius);
+		var period = 2 * Math.PI * Math.sqrt(this.ax * this.ax * this.ax / this.GM);
+      var eccAngle = Math.atan2(eccVec[1], eccVec[0]);
+      if (eccAngle < 0) { eccAngle += 2 * Math.PI; } // range 0..359
+      var pAngle = Math.atan2(p[1], p[0]);
+		var trueAnomRaw1 = Math.acos(this.ax * (1 - this.ecc * this.ecc) / radius / this.ecc - 1 / this.ecc);
+		var trueAnomRaw2 = pAngle - eccAngle;
+      this.argp = eccAngle;
+      var trueAnom = trueAnomRaw2;
+      var eccAnom = 2.0 * Math.atan(Math.sqrt((1.0 - this.ecc) / (1.0 + this.ecc)) * Math.tan(trueAnom / 2.0));
+      var meanAnom = eccAnom - this.ecc * Math.sin(eccAnom);
+      var time = meanAnom * period / Math.PI / 2.0;
+      if (time < 0) {
+			time += period;
+		}
+		return time;
+   }
+
+   getEccVector(p, v) {
+		var radius = Math.sqrt(p[0] * p[0] + p[1] * p[1]);
+		var velocity = Math.sqrt(v[0] * v[0] + v[1] * v[1]);
+		var dotproduct = p[0] * v[0] + p[1] * v[1];
+      
+		var evx = (velocity * velocity * p[0] - dotproduct * v[0]) / this.GM;
+		var evy = (velocity * velocity * p[1] - dotproduct * v[1]) / this.GM;
+		evx -= (p[0] / radius);
+		evy -= (p[1] / radius);
+      var ev = [evx, evy];
+      return ev;
+   }
+
+   getOrbitalPosition(time) {
+      var point = [0, 0];
+      
+		var period = 2 * Math.PI * Math.sqrt(this.ax * this.ax * this.ax / this.GM);
+		time %= period;
+		this.topPeriod = period;
+		var meanAnom = 2 * Math.PI * time / period;
+		var eccAnom = this.getEccAnom(meanAnom);
+		var trueAnom = 2 * Math.atan(Math.sqrt((1 + this.ecc) / (1 - this.ecc)) * Math.tan(eccAnom / 2));
+		if (trueAnom < 0) {
+			trueAnom += (2 * Math.PI);
+		}
+		var radius = this.ax * (1 - this.ecc * this.ecc) / (1 + this.ecc * Math.cos(trueAnom));
+		this.topRadius = radius;
+		this.topTrueAnom = trueAnom;
+		var xx = radius * Math.cos(trueAnom + this.argp);
+		var yy = radius * Math.sin(trueAnom + this.argp);
+		point = [xx, yy];
+      return point;
+   }
+   
+   getEccAnom(mean) {
+      var ea;
+      var ep;
+      var mp;
+      var flag;
+      var prec = 0.0000000000005;
+      var timeout = 20;
+      
+      ea = mean;
+      flag = false;
+      while (!flag && timeout > 0) {
+			// Newton's method
+			ep = ea - (ea - this.ecc * Math.sin(ea) - mean) / (1 - this.ecc * Math.cos(ea));
+			ea = ep;
+			mp = ep - this.ecc * Math.sin(ep);
+			if(Math.abs(mean - mp) < prec) {
+				flag = true;
+         }
+         timeout--;
+      }
+      if (timeout == 0) { console.log("Could not converge mean " + mean.toString() + " mp " + mp.toString()); }
+      return ea;
+   }
+   
+   getVelocity(time) {
+      var tInc = 0.00001; // use short increment for more precision
+      
+		var p1 = this.getOrbitalPosition(time - tInc);
+		var p2 = this.getOrbitalPosition(time + tInc);
+		var vx = (p2[0] - p1[0]) / 2 / tInc;
+		var vy = (p2[1] - p1[1]) / 2 / tInc;
+
+      var velocity = [vx, vy];
+      return velocity;
+   }
+      
+} // class Orbit
+
+// Display parameters
+const XSIZE = 5;
+const YSIZE = 5;
+const CENTER = 300;
+const SCALE = 35;  // larger numbers shrink it more
+const RME = 6372.7976;
+
+// Slider control
+var slider = document.getElementById("myRange");
+var output = document.getElementById("warp");
+var timewarp = 1;
+output.innerHTML = 1;
+setWarp();
+slider.oninput = setWarp;
+
+function setWarp() {
+   if (slider.value < 17) {
+      slider.value = 0;
+      output.innerHTML = 1;
+      timewarp = 1;
+   }
+   else if (slider.value < 50) {
+      slider.value = 33;
+      output.innerHTML = 10;
+      timewarp = 10;
+   }
+   else if (slider.value < 84) {
+      slider.value = 67;
+      output.innerHTML = 100;
+      timewarp = 100;
+   }
+   else {
+      slider.value = 100;
+      output.innerHTML = 1000;
+      timewarp = 1000;
+   }
+}
+
+// Create orbiting objects and initialize
+var ship = new Orbit(0);
+ship.init();
+var station = new Orbit(1);
+station.init();
+drawEarth();
+drawApsis(ship);
+
+// Start the animation
+var id = setInterval(frame, 100);
+
+function drawEarth() {
+   var c = document.getElementById("myCanvas");
+   var ctx = c.getContext("2d");
+   ctx.beginPath();
+   ctx.arc(CENTER, CENTER, RME / SCALE, 0, 2 * Math.PI, false);
+   ctx.lineWidth = 5;
+   ctx.strokeStyle = '#8080ff';
+   ctx.stroke();
+}
+
+function drawObj(s, old) {
+   var x, y;
+   x = s.pos[0];
+   y = s.pos[1];
+   
+   var c = document.getElementById("myCanvas");
+   var ctx = c.getContext("2d");
+   ctx.beginPath();
+   ctx.arc(CENTER + x / SCALE, CENTER - y / SCALE, 3, 0, 2 * Math.PI, false);
+   if (old) {
+      ctx.fillStyle = 'LightGray';
+   }
+   else if (s.shipNum == 0) {
+      ctx.fillStyle = 'red';
+   }
+   else {
+      ctx.fillStyle = 'orange';
+   }
+   ctx.fill();
+   ctx.strokeStyle = 'LightGray';
+   ctx.lineWidth = 1;
+   ctx.stroke();
+}
+
+function drawApsis(s) {
+   var c = document.getElementById("myCanvas");
+   var ctx = c.getContext("2d");
+
+   var radiusPe = s.ax * (1 - s.ecc);
+   var radiusAp = s.ax * (1 + s.ecc);
+   var perX = CENTER + radiusPe * Math.cos(s.argp) / SCALE;
+   var perY = CENTER - radiusPe * Math.sin(s.argp) / SCALE;
+   var apX = CENTER - radiusAp * Math.cos(s.argp) / SCALE;
+   var apY = CENTER + radiusAp * Math.sin(s.argp) / SCALE;
+
+   // static variables
+   if ( typeof drawApsis.first == 'undefined' ) { 
+         drawApsis.first = 0;
+         drawApsis.lastPerX = perX;
+         drawApsis.lastPerY = perY;
+         drawApsis.lastApX = apX;
+         drawApsis.lastApY = apY;
+   }
+      
+   ctx.fillStyle = '#e0e0e0';
+   ctx.fillRect(drawApsis.lastPerX - 6, drawApsis.lastPerY - 6, 12, 12);
+   ctx.fillRect(drawApsis.lastApX - 6, drawApsis.lastApY - 6, 12, 12);
+   
+   // Periapsis point is solid square
+   ctx.fillStyle = 'green';
+   ctx.fillRect(perX - 5, perY - 5, 10, 10);
+   // Apapsis point is empty square
+   ctx.beginPath();
+   ctx.strokeStyle = 'green';
+   ctx.lineWidth = 1;
+   ctx.rect(apX - 5, apY - 5, 10, 10);
+   ctx.stroke();
+
+   drawApsis.lastPerX = perX;
+   drawApsis.lastPerY = perY;
+   drawApsis.lastApX = apX;
+   drawApsis.lastApY = apY;
+}
+
+function strFormat(v, n) {
+   <!-- s = (Math.round(v * (10**n)) / (10**n)).toString(); -->
+   s = v.toFixed(n);
+   return s
+}
+   
+function frame() {
+   ship.tInc = timewarp / 10;
+   station.tInc = timewarp / 10;
+   
+   drawEarth();
+   drawObj(ship, true); // gray over old position
+   drawObj(station, true); // gray over old position
+   drawApsis(ship);
+   ship.move();
+   station.move();
+   drawObj(ship, false); // draw new position
+   drawObj(station, false); // draw new position
+
+   distance = Math.sqrt((ship.pos[0] - station.pos[0]) * (ship.pos[0] - station.pos[0]) + (ship.pos[1] - station.pos[1]) * (ship.pos[1] - station.pos[1]));
+   
+   document.getElementById("shipEcc").innerHTML = strFormat(ship.ecc, 4);
+   document.getElementById("shipAx").innerHTML = strFormat(ship.ax, 2) + ' km';
+   document.getElementById("shipPeriod").innerHTML = strFormat(ship.topPeriod, 1) + ' s';
+   document.getElementById("shipArgP").innerHTML = strFormat(ship.argp * 180.0 / Math.PI, 1) + '\xB0';
+   document.getElementById("shipTime").innerHTML = strFormat(ship.time, 1) + ' s';
+   document.getElementById("shipRPe").innerHTML = strFormat(ship.radiusPe, 1) + ' km';
+   document.getElementById("shipRAp").innerHTML = strFormat(ship.radiusAp, 1) + ' km';
+   document.getElementById("shipRadius").innerHTML = strFormat(ship.topRadius, 1) + ' km';
+   document.getElementById("shipTrAnom").innerHTML = strFormat(ship.topTrueAnom * 180.0 / Math.PI, 1) + '\xB0';
+
+   document.getElementById("statEcc").innerHTML = strFormat(station.ecc, 4);
+   document.getElementById("statAx").innerHTML = strFormat(station.ax, 2) + ' km';
+   document.getElementById("statPeriod").innerHTML = strFormat(station.topPeriod, 1) + ' s';
+   document.getElementById("statArgP").innerHTML = strFormat(station.argp * 180.0 / Math.PI, 1) + '\xB0';
+   document.getElementById("statTime").innerHTML = strFormat(station.time, 1) + ' s';
+   document.getElementById("statRPe").innerHTML = strFormat(station.radiusPe, 1) + ' km';
+   document.getElementById("statRAp").innerHTML = strFormat(station.radiusAp, 1) + ' km';
+   document.getElementById("statRadius").innerHTML = strFormat(station.topRadius, 1) + ' km';
+   document.getElementById("statTrAnom").innerHTML = strFormat(station.topTrueAnom * 180.0 / Math.PI, 1) + '\xB0';
+   
+   document.getElementById("distance").innerHTML = strFormat(distance, 2) + ' km';
+}
+
+
+function thrust(dir) {
+   ship.thrustDir = dir;
+   var vstr = document.getElementById("thrustId").value;
+   var v = parseInt(vstr, 10);
+   if (v < 1 || v > 1000 || !Number.isInteger(v)) {
+      v = 1;
+   }
+   document.getElementById("thrustId").value = v.toString();
+   ship.thrustCommand = v;
+}
+
+</script>
+
+</body>
+</html>
